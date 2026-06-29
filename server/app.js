@@ -28,7 +28,21 @@ const app = express();
 const io = new Server({ transports: ['polling'] });
 const engine = new eio.Server({ transports: ['polling'] });
 io.bind(engine);
-app.use('/socket.io', (req, res) => engine.handleRequest(req, res));
+app.use('/socket.io', (req, res) => {
+  // Cloud Functions' framework fully drains and buffers the request body
+  // (into req.rawBody) before our handler ever runs, so the underlying
+  // stream has already ended by the time engine.io tries to read POST
+  // bodies via req.on('data'/'end'). Those events fired once already, with
+  // no listeners attached, and are gone. Replay them from the buffered
+  // copy so engine.io's polling transport sees the body it expects.
+  if (req.method === 'POST' && req.rawBody) {
+    process.nextTick(() => {
+      req.emit('data', req.rawBody);
+      req.emit('end');
+    });
+  }
+  engine.handleRequest(req, res);
+});
 
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
 if (!ADMIN_PASSCODE) {
