@@ -69,6 +69,17 @@ function persistName(name) {
   renderHeaderName();
 }
 
+document.getElementById('confirmNameBtn').addEventListener('click', () => {
+  const name = nameInput.value.trim();
+  if (name) persistName(name);
+});
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const name = nameInput.value.trim();
+    if (name) persistName(name);
+  }
+});
+
 // ---------- Edit name modal ----------
 
 const editNameModal = document.getElementById('editNameModal');
