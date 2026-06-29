@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Authless 1v1 Top Trumps game for a golf society trip - members are the cards",
   "main": "server/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js"

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: okey26-top-trumps
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ADMIN_PASSCODE
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: boards-6e600
+      - key: FIREBASE_STORAGE_BUCKET
+        value: boards-6e600.firebasestorage.app
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
