@@ -166,13 +166,30 @@ app.post('/api/players/:id/photo', requireAdmin, replayRawBody, handlePhotoUploa
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
   const ext = (req.file.originalname.match(/\.[a-zA-Z0-9]+$/) || ['.jpg'])[0].toLowerCase();
-  const filename = `player-photos/${id}-${Date.now()}${ext}`;
-  const file = bucket.file(filename);
+  const storagePath = `player-photos/${id}-${Date.now()}${ext}`;
+  const file = bucket.file(storagePath);
   await file.save(req.file.buffer, { metadata: { contentType: req.file.mimetype } });
-  const [photoUrl] = await file.getSignedUrl({ action: 'read', expires: '01-01-2100' });
+  // Signed URLs need an IAM permission (iam.serviceAccounts.signBlob) the
+  // default Cloud Functions service account doesn't have, so photos are
+  // streamed through our own /api/photos route instead of a Storage URL.
+  const photoUrl = `/api/photos/${encodeURIComponent(storagePath)}`;
 
   await db.updatePlayer(id, { photoUrl });
   res.json({ ok: true, photo_url: photoUrl });
+}));
+
+// ---- Public photo proxy (streams player photos out of Cloud Storage) ----
+
+app.get('/api/photos/:storagePath', asyncRoute(async (req, res) => {
+  const storagePath = decodeURIComponent(req.params.storagePath);
+  if (!storagePath.startsWith('player-photos/')) return res.status(400).end();
+  const file = bucket.file(storagePath);
+  const [exists] = await file.exists();
+  if (!exists) return res.status(404).end();
+  const [metadata] = await file.getMetadata();
+  res.set('Content-Type', metadata.contentType || 'image/jpeg');
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  file.createReadStream().pipe(res);
 }));
 
 // ---- Admin: competition score management ----
