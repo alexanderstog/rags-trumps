@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Manage Players — Okehampton Top Trumps</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <h1>🔒 Manage Players</h1>
+    </header>
+
+    <main id="screens">
+      <section id="screen-login" class="screen">
+        <div class="card-panel">
+          <label>Passcode</label>
+          <input id="passcodeInput" type="password" placeholder="Enter passcode" />
+          <button id="loginBtn" class="primary-btn">Unlock</button>
+          <p id="loginError" class="error"></p>
+        </div>
+      </section>
+
+      <section id="screen-manage" class="screen hidden">
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="players">Players</button>
+          <button class="admin-tab" data-tab="competitions">Competitions</button>
+        </div>
+
+        <div id="tab-players" class="admin-tab-panel">
+          <div class="card-panel">
+            <h3>Add Player</h3>
+            <div id="adminAddForm"></div>
+            <label>Photo (optional, add after saving)</label>
+            <button id="adminAddBtn" class="primary-btn">Add Player</button>
+          </div>
+          <div id="adminList" class="admin-list"></div>
+        </div>
+
+        <div id="tab-competitions" class="admin-tab-panel hidden">
+          <div class="card-panel">
+            <h3>🏆 Ryder Cup</h3>
+            <p class="hint">Europe vs. USA — total points.</p>
+            <div class="ryder-cup-inputs">
+              <div>
+                <label>Europe</label>
+                <input type="number" id="ryderEurope" step="0.5" />
+              </div>
+              <div>
+                <label>USA</label>
+                <input type="number" id="ryderUsa" step="0.5" />
+              </div>
+            </div>
+            <button id="saveRyderCupBtn" class="primary-btn">Save Ryder Cup</button>
+            <p id="ryderCupStatus" class="upload-status"></p>
+          </div>
+
+          <div class="card-panel">
+            <h3>Scores</h3>
+            <p class="hint">Edit any score, then save that competition's column.</p>
+            <div class="comp-table-wrap">
+              <table class="comp-table" id="compTable"></table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="cropModal" class="modal-overlay hidden">
+    <div class="modal-box center">
+      <h3>Crop &amp; Center Photo</h3>
+      <p class="hint">Drag to reposition, use the slider to zoom.</p>
+      <div id="cropBox" class="crop-box">
+        <img id="cropImg" class="crop-img" alt="" draggable="false" />
+      </div>
+      <label>Zoom</label>
+      <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1" />
+      <button id="cropSaveBtn" class="primary-btn">Use Photo</button>
+      <button id="cropCancelBtn" class="secondary-btn">Cancel</button>
+      <p id="cropError" class="error"></p>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

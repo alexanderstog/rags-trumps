@@ -1,0 +1,12 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Uploads go through the trusted server (Admin SDK), which bypasses
+    // these rules. Player photos are served back out via the server's
+    // own /api routes (signed/public URLs), not direct client writes.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
