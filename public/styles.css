@@ -110,27 +110,25 @@ input:focus { outline: none; border-color: var(--accent); background: #fff; }
 .primary-btn { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(43, 182, 115, 0.35); }
 .play-cta {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 4px;
-  padding: 16px;
+  justify-content: center;
+  gap: 18px;
+  padding: 14px 24px;
   margin-bottom: 16px;
 }
-.play-cta-logo {
-  font-size: 1.7rem;
+.play-cta-logo-img {
+  height: 56px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.play-cta-label {
+  font-size: 2rem;
   font-weight: 900;
   font-style: italic;
   color: #fff;
   letter-spacing: -0.5px;
 }
-.play-cta-logo sup {
-  color: #ffe066;
-  font-size: 0.5em;
-  font-weight: 900;
-  font-style: italic;
-  margin-left: 1px;
-}
-.play-cta-label { font-size: 0.95rem; font-weight: 700; }
 .primary-btn:active { transform: scale(0.98); }
 .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 .secondary-btn { background: #eef2f6; color: var(--ink); }
