@@ -28,6 +28,15 @@ const app = express();
 const io = new Server({ transports: ['polling'] });
 const engine = new eio.Server({ transports: ['polling'] });
 io.bind(engine);
+
+// attach() normally serves the client bundle itself at this exact path;
+// our manual /socket.io catch-all below only understands engine.io
+// protocol requests, so the client script needs its own route first.
+const socketIoClientPath = path.join(path.dirname(require.resolve('socket.io/package.json')), 'client-dist', 'socket.io.js');
+app.get('/socket.io/socket.io.js', (req, res) => {
+  res.sendFile(socketIoClientPath);
+});
+
 app.use('/socket.io', (req, res) => {
   // Cloud Functions' framework fully drains and buffers the request body
   // (into req.rawBody) before our handler ever runs, so the underlying
@@ -43,6 +52,20 @@ app.use('/socket.io', (req, res) => {
   }
   engine.handleRequest(req, res);
 });
+
+// Same Cloud Functions body-buffering issue as the /socket.io route above:
+// multer/busboy reads multipart bodies as a stream, but the framework has
+// already drained it into req.rawBody by the time our handler runs. Replay
+// it before multer ever tries to read, so it sees the bytes it expects.
+function replayRawBody(req, res, next) {
+  if (req.rawBody) {
+    process.nextTick(() => {
+      req.emit('data', req.rawBody);
+      req.emit('end');
+    });
+  }
+  next();
+}
 
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
 if (!ADMIN_PASSCODE) {
@@ -136,7 +159,7 @@ app.delete('/api/players/:id', requireAdmin, asyncRoute(async (req, res) => {
   res.json({ ok: true });
 }));
 
-app.post('/api/players/:id/photo', requireAdmin, handlePhotoUpload, asyncRoute(async (req, res) => {
+app.post('/api/players/:id/photo', requireAdmin, replayRawBody, handlePhotoUpload, asyncRoute(async (req, res) => {
   const id = req.params.id;
   const existing = await db.getPlayer(id);
   if (!existing) return res.status(404).json({ error: 'Player not found' });
