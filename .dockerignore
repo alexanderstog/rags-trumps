@@ -1,0 +1,9 @@
+node_modules
+.git
+data.sqlite
+*.sqlite
+public/uploads/*
+!public/uploads/.gitkeep
+.env
+*.serviceaccount.json
+serviceAccountKey.json
