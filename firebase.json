@@ -17,6 +17,10 @@
     }
   ],
   "hosting": {
+    "public": "public",
+    "ignore": [
+      "uploads/**"
+    ],
     "rewrites": [
       {
         "source": "**",

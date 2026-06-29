@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const { Server } = require('socket.io');
+const eio = require('engine.io');
 const multer = require('multer');
 
 const db = require('./db');
@@ -20,10 +21,14 @@ const app = express();
 // module works both as a normal long-running Node process (server/index.js
 // attaches it to a real http.Server and listens) and as a Cloud Function
 // (no http.Server available - requests are handled one at a time via
-// io.engine.handleRequest below). Polling-only avoids relying on a raw
-// 'upgrade' event, which serverless platforms don't reliably expose.
+// engine.handleRequest below). `new Server(opts)` alone never creates
+// `io.engine` (that only happens via attach()), so the engine.io server is
+// built manually here and bound to socket.io. Polling-only avoids relying
+// on a raw 'upgrade' event, which serverless platforms don't expose.
 const io = new Server({ transports: ['polling'] });
-app.use('/socket.io', (req, res) => io.engine.handleRequest(req, res));
+const engine = new eio.Server({ transports: ['polling'] });
+io.bind(engine);
+app.use('/socket.io', (req, res) => engine.handleRequest(req, res));
 
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
 if (!ADMIN_PASSCODE) {
