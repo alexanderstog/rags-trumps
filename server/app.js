@@ -182,10 +182,17 @@ app.post('/api/players/:id/photo', requireAdmin, replayRawBody, handlePhotoUploa
 
 app.get('/api/photos/:storagePath', asyncRoute(async (req, res) => {
   const storagePath = decodeURIComponent(req.params.storagePath);
+  console.log('[photo proxy] rawParam=%s decoded=%s bucket=%s', req.params.storagePath, storagePath, bucket.name);
   if (!storagePath.startsWith('player-photos/')) return res.status(400).end();
   const file = bucket.file(storagePath);
-  const [exists] = await file.exists();
-  if (!exists) return res.status(404).end();
+  try {
+    const [exists] = await file.exists();
+    console.log('[photo proxy] exists=%s', exists);
+    if (!exists) return res.status(404).end();
+  } catch (err) {
+    console.error('[photo proxy] exists() threw:', err.code, err.message);
+    throw err;
+  }
   const [metadata] = await file.getMetadata();
   res.set('Content-Type', metadata.contentType || 'image/jpeg');
   res.set('Cache-Control', 'public, max-age=31536000, immutable');
