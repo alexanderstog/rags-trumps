@@ -166,13 +166,13 @@ app.post('/api/players/:id/photo', requireAdmin, replayRawBody, handlePhotoUploa
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
   const ext = (req.file.originalname.match(/\.[a-zA-Z0-9]+$/) || ['.jpg'])[0].toLowerCase();
-  const storagePath = `player-photos/${id}-${Date.now()}${ext}`;
-  const file = bucket.file(storagePath);
+  const filename = `${id}-${Date.now()}${ext}`;
+  const file = bucket.file(`player-photos/${filename}`);
   await file.save(req.file.buffer, { metadata: { contentType: req.file.mimetype } });
   // Signed URLs need an IAM permission (iam.serviceAccounts.signBlob) the
   // default Cloud Functions service account doesn't have, so photos are
   // streamed through our own /api/photos route instead of a Storage URL.
-  const photoUrl = `/api/photos/${encodeURIComponent(storagePath)}`;
+  const photoUrl = `/api/photos/player-photos/${filename}`;
 
   await db.updatePlayer(id, { photoUrl });
   res.json({ ok: true, photo_url: photoUrl });
@@ -180,18 +180,13 @@ app.post('/api/players/:id/photo', requireAdmin, replayRawBody, handlePhotoUploa
 
 // ---- Public photo proxy (streams player photos out of Cloud Storage) ----
 
-app.get('/api/photos/:storagePath', asyncRoute(async (req, res) => {
-  const storagePath = decodeURIComponent(req.params.storagePath);
-  if (!storagePath.startsWith('player-photos/')) return res.status(400).end();
+// Cloud Functions' framework decodes %2F to a literal "/" before Express
+// ever sees the path, so a single ":param" segment can't carry an encoded
+// slash through route matching. The prefix is fixed, so just match it
+// literally and only the filename itself needs to be dynamic.
+app.get('/api/photos/player-photos/:filename', asyncRoute(async (req, res) => {
+  const storagePath = `player-photos/${req.params.filename}`;
   const file = bucket.file(storagePath);
-  if (req.query.debug) {
-    try {
-      const [exists] = await file.exists();
-      return res.json({ rawParam: req.params.storagePath, storagePath, bucketName: bucket.name, exists });
-    } catch (err) {
-      return res.json({ rawParam: req.params.storagePath, storagePath, bucketName: bucket.name, errCode: err.code, errMessage: err.message, errName: err.name });
-    }
-  }
   const [exists] = await file.exists();
   if (!exists) return res.status(404).end();
   const [metadata] = await file.getMetadata();
