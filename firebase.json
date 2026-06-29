@@ -5,6 +5,25 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "functions": [
+    {
+      "source": ".",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "public/uploads/**"
+      ]
+    }
+  ],
+  "hosting": {
+    "rewrites": [
+      {
+        "source": "**",
+        "function": "api"
+      }
+    ]
+  },
   "emulators": {
     "firestore": {
       "port": 8080

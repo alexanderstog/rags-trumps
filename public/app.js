@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io({ transports: ['polling'] });
 
 const screens = {
   home: document.getElementById('screen-home'),
